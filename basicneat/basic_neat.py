@@ -1,19 +1,26 @@
-import os
+from os import path
 import neat
 import neatviz as visualize
 
 # 2-input XOR inputs and expected outputs.
-xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
-xor_outputs = [   (0.0,),     (1.0,),     (1.0,),     (0.0,)]
+# xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
+# xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
 
 
 def eval_genomes(genomes, config):
+    """
+    The key thing you need to figure out for a given problem is how to measure the fitness of the genomes that are produced by NEAT.
+    Fitness is expected to be a Python float value.
+    If genome A solves your problem more successfully than genome B, then the fitness value of A should be greater than the value of B.
+    The absolute magnitude and signs of these fitnesses are not important, only their relative values.
+    """
     for genome_id, genome in genomes:
-        genome.fitness = 4.0
+        # genome.fitness = 4.0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
-        for xi, xo in zip(xor_inputs, xor_outputs):
-            output = net.activate(xi)
-            genome.fitness -= (output[0] - xo[0]) ** 2
+        net.activate()
+        # for xi, xo in zip(xor_inputs, xor_outputs):
+        #     output = net.activate(xi)
+        #     genome.fitness -= (output[0] - xo[0]) ** 2
 
 
 def run(config_file):
@@ -46,7 +53,7 @@ def run(config_file):
 
     # graph viz not installed, need root privelages
     # node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
-	# visualize.draw_net(config, winner, True, node_names=node_names)
+    # visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 
@@ -58,6 +65,6 @@ if __name__ == '__main__':
     # Determine path to configuration file. This path manipulation is
     # here so that the script will run successfully regardless of the
     # current working directory.
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config-feedforward.ini')
+    local_dir = path.dirname(__file__)
+    config_path = path.join(local_dir, 'config-feedforward.ini')
     run(config_path)
