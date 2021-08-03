@@ -1,121 +1,113 @@
 import threading
+from os import path
+import neat
+import neatviz as visualize
+from game import Game
 import time
-from typing import List
-import numpy as np
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from dataclasses import dataclass
+
+runs_per_net = 5
+simulation_seconds = 15.0
 
 
-# All dataclasses should contain normalized data unless otherwise noted
-@dataclass
-class SnakeData:
+# based off of https://github.com/CodeReclaimers/neat-python/blob/master/examples/single-pole-balancing/evolve
+# -feedforward.py
+
+def todo_snake_sim():
+    return "implement the snake server client setup + sim in a separate thread..."
+
+
+# most stuff assumes a tightly control simulation where we get data at each step,
+# but when we run a live thing it may not be so? network latency, data exfil latency, control input latency.
+# how should we handle these. should we even handle these. should we simulate these delays in our server?
+
+def eval_genome(genome, config):
+    # run the simulation in here, then output the final score
+    net = neat.nn.FeedForwardNetwork.create(genome, config)
+    fitnesses = []
+
+    for runs in range(runs_per_net):
+        sim = Game()
+        while not sim.is_ready:
+            # waiting for the game to get ready
+            time.sleep(1)
+        # maybe make this just while not sim.stopped() to let them have a fun time
+        elapsed_time = 0
+        while elapsed_time < simulation_seconds:
+            inputs = sim.get_scaled_inputs()  # returns a properly encoded version of GameData hopefully
+            # i think we are allowing ai to press multiple buttons at the same time
+            # like you need to be able to boost and turn at the same time
+            action = net.activate(inputs)
+            sim.submit_action(action)
+
+            if sim.is_stopped():
+                break
+
+            elapsed_time = time.time() - sim.start_time
+
+        # we define the fitness to be a weight sum based on the total time survived and the length
+        length = sim.get_current_data().snake.score
+        fitness = 0.70 * length + 0.30 * elapsed_time
+
+        fitnesses.append(fitness)
+
+    # couple of ways to do this
+    # we could return the min of the fitness,
+    # which would mean a nets' fitness is how it performed worst
+    # so anything good will at least perform this much
+    # we could also do others (like mean or max) but this makes sense for now
+    # this is mainly because we are doing
+    final_fitness = min(fitnesses)
+    return final_fitness
+
+
+def eval_genomes(genomes, config):
     """
-    # ~~an instance of `run_slither` thread / function will update this with latest state~~
-    # ~~an instance of~~
+    The key thing you need to figure out for a given problem is how to measure the fitness of the genomes that are produced by NEAT.
+    Fitness is expected to be a Python float value.
+    If genome A solves your problem more successfully than genome B, then the fitness value of A should be greater than the value of B.
+    The absolute magnitude and signs of these fitnesses are not important, only their relative values.
     """
-    x: float
-    y: float
-    heading: float
-    speed: float
+    for genome_id, genome in genomes:
+        genome.fitness = eval_genome(genome, config)
 
 
-@dataclass
-class FoodData:
-    x: float
-    y: float
-    sz: float
+def run(config_file):
+    # Load configuration.
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_file)
+
+    # Create the population, which is the top-level object for a NEAT run.
+    p = neat.Population(config)
+
+    # Add a stdout reporter to show progress in the terminal.
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(25, 600))  # every 25 epochs(?) or every 600 seconds
+
+    # Run for up to 300 generations.
+    winner = p.run(eval_genomes, 300)
+
+    # Display the winning genome.
+    print('\nBest genome:\n{!s}'.format(winner))
+
+    # Show output of the most fit genome against training data.
+    print('\nOutput:')
+    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+    # TODO play the game here with the winning net on non-headless webdriver or a real server :p
+
+    visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
 
 
-@dataclass
-class SnakeEnvData:
-    # only foods in view
-    foods: List[FoodData]
-    # NOT YET opponent_snakes: List[SnakeData]
-
-
-@dataclass
-class GameData:
-    snake: SnakeData
-    env: SnakeEnvData
-
-
-MAX_VIEW = 1000  # TODO what units
-
-
-def in_view(snakepos, pos2, dis=MAX_VIEW):
-    return calc_distance(snakepos, pos2) < dis
-
-
-def calc_distance(pos1, pos2):
-    # sqrt((x1 - x1)**2 + (y1 - y2)**2))
-    return np.sqrt(np.power(pos1[0] - pos2[0], 2) + np.power(pos1[1] - pos2[1], 2))
-
-
-def run_slither():
-    chrome_options = Options()
-    chrome_options.add_argument('--no-sandbox')
-    # chrome_options.add_argument('--headless')
-    # TODO switch to PhantomJS when we are fully headless
-    # driver = webdriver.PhantomJS()
-    browser = webdriver.Chrome(options=chrome_options)
-    print("slither io running")
-    browser.get("http://slither.io/")
-    try:
-        nickname = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "nick")))
-        if nickname.is_displayed() and nickname.is_enabled():
-            browser.execute_script(
-                "document.querySelector('#nick').value = 'c5lither';window.connect("
-                ");window.render_mode=1;window.want_quality=0;window.high_quality=false;window.onmousemove=function("
-                "){}; "
-            )
-            # driver.execute_script("window.redraw=function(){}")
-            browser.execute_script("window.stop()")
-    finally:
-        time.sleep(1)
-
-    while True:
-        alive = browser.execute_script("return window.dead_mtm")
-        if alive == -1:
-            raw_foods = browser.execute_script("return window.foods")
-            raw_snake = browser.execute_script("return window.snake")
-            othersnakes = browser.execute_script("return window.snakes")
-            # if raw_foods is None or raw_snake is None or othersnakes is None:
-            #     time.sleep(1)
-            #     print("game not ready?")
-            # TODO extract out constants
-            snakepos = raw_snake['xx'], raw_snake['yy']
-            snake = SnakeData(snakepos[0] / 45000, snakepos[1] / 45000, (raw_snake['ang']) / (2 * np.pi),
-                              raw_snake['sp'] / 14)
-            # Total score: Math.floor(15 * (fpsls[snake.sct] + snake.fam / fmlts[snake.sct] - 1) - 5) / 1
-            # origin is top left
-            # foods is an ever growing list of all foods
-            foods = []
-            for food in raw_foods:
-                if food is None:
-                    continue
-                foodpos = food['xx'], food['yy']
-                if in_view(snakepos, foodpos):
-                    foods.append(FoodData(foodpos[0], foodpos[1], food['sz'] / 30))
-
-            environment = SnakeEnvData(foods)
-            data = GameData(snake, environment)
-            print(snake)
-            print(environment.foods[0:4])
-        else:
-            print("ya ded")
-            browser.quit()
-        time.sleep(0.5)
-
-    # browser.quit()
-
-
-# TODO we'll need to do multithread for running multiple agents at the same time
-
+# TODO we'll need to do multithreading for running multiple agents at the same time
 
 if __name__ == '__main__':
-    t = threading.Thread(target=run_slither)
-    t.start()
+    try:
+        local_dir = path.dirname(__file__)
+        config_path = path.join(local_dir, 'config-feedforward.ini')
+        run(config_path)
+    except KeyboardInterrupt:
+        # todo save some checkpoints here
+        print("Exitting due to Ctrl+C")

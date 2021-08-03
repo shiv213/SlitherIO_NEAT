@@ -66,3 +66,5 @@ very new but exists https://github.com/ahmedfgad/GeneticAlgorithmPython
 https://deap.readthedocs.io/en/master/
 
 https://github.com/diogomatoschaves/geneal
+
+https://selenium-python.readthedocs.io/api.html

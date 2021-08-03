@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "repl_python3_SlitherIONEAT"
+name = "SlitherIO_NEAT"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Shiv Trivedi <shiv.v.trivedi@gmail.com>", "Yaseen S. <yaseen.nvt@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
