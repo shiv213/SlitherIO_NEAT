@@ -5,7 +5,7 @@ import neatviz as visualize
 from game import Game
 import time
 
-runs_per_net = 5
+runs_per_net = 1
 simulation_seconds = 15.0
 
 
@@ -27,25 +27,29 @@ def eval_genome(genome, config):
 
     for runs in range(runs_per_net):
         sim = Game()
+        t = threading.Thread(target=sim.run_slither, daemon=False)
+        t.start()
         while not sim.is_ready:
             # waiting for the game to get ready
-            time.sleep(1)
+            time.sleep(0.1)
         # maybe make this just while not sim.stopped() to let them have a fun time
         elapsed_time = 0
-        while elapsed_time < simulation_seconds:
+        while elapsed_time < simulation_seconds and not sim.is_stopped:
             inputs = sim.get_scaled_inputs()  # returns a properly encoded version of GameData hopefully
             # i think we are allowing ai to press multiple buttons at the same time
             # like you need to be able to boost and turn at the same time
             action = net.activate(inputs)
-            sim.submit_action(action)
-
-            if sim.is_stopped():
-                break
-
+            if not sim.is_stopped:
+                sim.submit_action(action)
             elapsed_time = time.time() - sim.start_time
 
         # we define the fitness to be a weight sum based on the total time survived and the length
         length = sim.get_current_data().snake.score
+        if elapsed_time >= simulation_seconds:
+            print("genome", sim.start_time, "timed out with a score of", length)
+        else:
+            print("genome", sim.start_time, "ended with a score of", length)
+        sim.kill_thread()
         fitness = 0.70 * length + 0.30 * elapsed_time
 
         fitnesses.append(fitness)
