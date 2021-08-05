@@ -7,7 +7,6 @@ import time
 
 runs_per_net = 1
 simulation_seconds = 5.0
-sim_timeout = 10
 
 
 # based off of https://github.com/CodeReclaimers/neat-python/blob/master/examples/single-pole-balancing/evolve
@@ -25,8 +24,8 @@ def eval_genome(genome, config):
     # run the simulation in here, then output the final score
     net = neat.nn.FeedForwardNetwork.create(genome, config)
     fitnesses = []
-    run = 0
-    while run < runs_per_net:
+    current_run = 0
+    while current_run < runs_per_net:
         print('creating new sim')
         sim = Game()
         t = threading.Thread(target=sim.run_slither, daemon=True)
@@ -62,7 +61,7 @@ def eval_genome(genome, config):
             t.join()
             # print('after t join')
             fitness = 0.70 * length + 0.30 * elapsed_time
-            run += 1
+            current_run += 1
             fitnesses.append(fitness)
 
     # couple of ways to do this
