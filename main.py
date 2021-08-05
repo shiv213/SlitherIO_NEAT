@@ -7,6 +7,7 @@ import time
 
 runs_per_net = 1
 simulation_seconds = 5.0
+sim_timeout = 10
 
 
 # based off of https://github.com/CodeReclaimers/neat-python/blob/master/examples/single-pole-balancing/evolve
@@ -29,32 +30,39 @@ def eval_genome(genome, config):
         sim = Game()
         t = threading.Thread(target=sim.run_slither, daemon=True)
         t.start()
+
+        # print('started thread')
+        # while (time.time() - sim.start_time) < sim_timeout:
         while not sim.is_ready:
             # waiting for the game to get ready
             time.sleep(0.1)
+
+        # print('waiting for sim to be ready')
         # maybe make this just while not sim.stopped() to let them have a fun time
         elapsed_time = 0
-        while elapsed_time < simulation_seconds and not sim.is_stopped:
+        # print('before while sim not stopped in eval_genome')
+        while elapsed_time < simulation_seconds and not sim.get_stopped():
+            # print('inside while sim not stopped in eval_genome')
             inputs = sim.get_scaled_inputs()  # returns a properly encoded version of GameData hopefully
-            # i think we are allowing ai to press multiple buttons at the same time
-            # like you need to be able to boost and turn at the same time
-            action = net.activate(inputs)
-            sim.submit_action(action)
-            elapsed_time = time.time() - sim.start_time
+            if inputs != 0:
+                action = net.activate(inputs)
+                sim.submit_action(action)
+                elapsed_time = time.time() - sim.start_time
+        if sim.get_current_data() is not None:
+            # print('after while sim not stopped in eval_genome')
+            # we define the fitness to be a weight sum based on the total time survived and the length
+            length = sim.get_current_data().snake.score
+            if elapsed_time >= simulation_seconds:
+                print("genome", sim.start_time, "timed out with a score of", length)
+            else:
+                print("genome", sim.start_time, "ended with a score of", length)
+            sim.kill_thread()
+            # print('after sim kill thread')
+            t.join()
+            # print('after t join')
+            fitness = 0.70 * length + 0.30 * elapsed_time
 
-        # we define the fitness to be a weight sum based on the total time survived and the length
-        length = sim.get_current_data().snake.score
-        if elapsed_time >= simulation_seconds:
-            print("genome", sim.start_time, "timed out with a score of", length)
-        else:
-            print("genome", sim.start_time, "ended with a score of", length)
-        sim.kill_thread()
-        print('after sim kill thread')
-        t.join()
-        print('after t join')
-        fitness = 0.70 * length + 0.30 * elapsed_time
-
-        fitnesses.append(fitness)
+            fitnesses.append(fitness)
 
     # couple of ways to do this
     # we could return the min of the fitness,

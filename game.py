@@ -66,16 +66,7 @@ class Game:
         self.__is_ready = False
         self.start_time = None
         self.is_stopped = False
-        # chrome_options = Options()
-        # chrome_options.add_argument('--no-sandbox')
-        # chrome_options.add_argument('--headless')
         self.browser = None
-        # self.browser = webdriver.Chrome(options=chrome_options)
-        # # noinspection HttpUrlsUsage
-        # self.browser.get("http://slither.io/")
-        # self.t = threading.Thread(target=self.run_slither, daemon=True)
-        # self.t.start()
-        # self.run_slither()
         self.lock = threading.Lock()
 
     @staticmethod
@@ -84,7 +75,7 @@ class Game:
         return np.sqrt(np.power(pos1[0] - pos2[0], 2) + np.power(pos1[1] - pos2[1], 2))
 
     def kill_thread(self):
-        self.is_stopped = True
+        self.set_stopped(True)
 
     def in_view(self, pos2, dis=MAX_VIEW):
         snake = self.get_current_data().snake
@@ -94,13 +85,11 @@ class Game:
         # TODO maybe we need a lock / mutex kinda thing here
         # so that it basically blocks while the selenium thread is writing to this variable
         # and waits until after the write so that it doesn't get stale state
-        print("waiting for a lock")
         self.lock.acquire()
         try:
             data = self.__game_data
         finally:
             self.lock.release()
-            print("released lock")
         return data
 
     def set_current_data(self, new_data):
@@ -109,6 +98,21 @@ class Game:
             self.__game_data = new_data
         finally:
             self.lock.release()
+
+    def set_stopped(self, is_stopped):
+        self.lock.acquire()
+        try:
+            self.is_stopped = is_stopped
+        finally:
+            self.lock.release()
+
+    def get_stopped(self):
+        self.lock.acquire()
+        try:
+            state = self.is_stopped
+        finally:
+            self.lock.release()
+        return state
 
     @property
     def is_ready(self):
@@ -120,7 +124,10 @@ class Game:
         #  as per https://stats.stackexchange.com/questions/218407/encoding-angle-data-for-neural-network
 
         data = self.get_current_data()
-        print(data)
+        if data is None:
+            return 0
+
+        # print(data)
 
         inputs = [
             data.snake.x / MAX_X,
@@ -196,94 +203,94 @@ class Game:
 
         self.start_time = time.time()
         print("genome started at", self.start_time)
+        self.__is_ready = True
         # DUPLICATED CODE
-        obj = self.browser.execute_script(
-            """
-            return {
-                alive: window.dead_mtm,
-                foods: window.foods, snake: window.snake, snakes: window.snakes, 
-                fpsls: window.fpsls, fmlts: fmlts
-            };
-            """
-        )
-        raw_foods = obj['foods']
-        raw_snake = obj['snake']
+        # obj = self.browser.execute_script(
+        #     """
+        #     return {
+        #         alive: window.dead_mtm,
+        #         foods: window.foods, snake: window.snake, snakes: window.snakes,
+        #         fpsls: window.fpsls, fmlts: fmlts
+        #     };
+        #     """
+        # )
+        # raw_foods = obj['foods']
+        # # raw_snake = obj['snake']
         # raw_snake = None
-        other_snakes = obj['snakes']
-        fpsls = obj['fpsls']
-        fmlts = obj['fmlts']
-        if any(x is None for x in [raw_foods, raw_snake, other_snakes, fpsls, fmlts]):
-            print(self.start_time, "errored")
-            self.is_stopped = True
+        # other_snakes = obj['snakes']
+        # fpsls = obj['fpsls']
+        # fmlts = obj['fmlts']
+        # if any(x is None for x in [raw_foods, raw_snake, other_snakes, fpsls, fmlts]):
+        #     print(self.start_time, "errored")
+        #     self.is_stopped = True
         # DUPLICATED CODE
-        else:
-            while not self.is_stopped:
-                obj = self.browser.execute_script(
-                    """
-                    return {
-                        alive: window.dead_mtm,
-                        foods: window.foods, snake: window.snake, snakes: window.snakes, 
-                        fpsls: window.fpsls, fmlts: fmlts
-                    };
-                    """
-                )
-                alive = obj['alive']
-                self.__is_dead = alive != -1
-                if alive == -1:
-                    raw_foods = obj['foods']
-                    raw_snake = obj['snake']
-                    raw_snake = None
-                    # other_snakes = obj['snakes']
-                    fpsls = obj['fpsls']
-                    fmlts = obj['fmlts']
-                    if any(x is None for x in [raw_foods, raw_snake, other_snakes, fpsls, fmlts]):
-                        print(self.start_time, "errored")
-                        self.is_stopped = True
-                        break
-                    # only set is ready true after we get at least one good reading
-                    self.__is_ready = True
-                    print('ready and got one reading')
+        while not self.get_stopped():
+            obj = self.browser.execute_script(
+                """
+                return {
+                    alive: window.dead_mtm,
+                    foods: window.foods, snake: window.snake, snakes: window.snakes, 
+                    fpsls: window.fpsls, fmlts: fmlts
+                };
+                """
+            )
+            alive = obj['alive']
+            self.__is_dead = alive != -1
+            if alive == -1:
+                raw_foods = obj['foods']
+                raw_snake = obj['snake']
+                # raw_snake = None
+                other_snakes = obj['snakes']
+                fpsls = obj['fpsls']
+                fmlts = obj['fmlts']
+                if any(x is None for x in [raw_foods, raw_snake, other_snakes, fpsls, fmlts]):
+                    print(self.start_time, "errored")
+                    self.set_stopped(True)
+                    break
+                # only set is ready true after we get at least one good reading
+                # self.__is_ready = True
+                # print('ready and got one reading')
 
-                    # if not [x for x in (raw_foods, raw_snake, other_snakes, fpsls, fmlts) if x is None]:
-                    #     break
-                    snakepos = raw_snake['xx'], raw_snake['yy']
-                    score = np.floor(15 * (fpsls[raw_snake['sct']] + raw_snake['fam'] / fmlts[raw_snake['sct']] - 1) - 5)
-                    snake = SnakeData(snakepos[0], snakepos[1], raw_snake['ang'], raw_snake['sp'], score)
-                    # coordinate origin is top left
-                    # foods is an ever growing list of all foods
-                    foods = []
-                    enemy_snakes = []
-                    self.set_current_data(GameData(snake, SnakeEnvData(foods, enemy_snakes)))
-                    for sn in other_snakes:
-                        if sn is None:
-                            continue
-                        if sn['id'] == raw_snake['id']:
-                            continue
-                        snpos = (sn['xx'], sn['yy'])
-                        if self.in_view(snpos):
-                            enemy_snakes.append(EnemySnakeData(*snpos))
+                # if not [x for x in (raw_foods, raw_snake, other_snakes, fpsls, fmlts) if x is None]:
+                #     break
+                snakepos = raw_snake['xx'], raw_snake['yy']
+                score = np.floor(15 * (fpsls[raw_snake['sct']] + raw_snake['fam'] / fmlts[raw_snake['sct']] - 1) - 5)
+                snake = SnakeData(snakepos[0], snakepos[1], raw_snake['ang'], raw_snake['sp'], score)
+                # coordinate origin is top left
+                # foods is an ever growing list of all foods
+                foods = []
+                enemy_snakes = []
+                self.set_current_data(GameData(snake, SnakeEnvData(foods, enemy_snakes)))
+                for sn in other_snakes:
+                    if sn is None:
+                        continue
+                    if sn['id'] == raw_snake['id']:
+                        continue
+                    snpos = (sn['xx'], sn['yy'])
+                    if self.in_view(snpos):
+                        enemy_snakes.append(EnemySnakeData(*snpos))
 
-                        # for pts in sn['pts']:
-                        #     ptspos = (pts['xx'], pts['yy'])
-                        #     if self.in_view(ptspos):
-                        #         enemy_snakes.append(ptspos[0] / MAX_X)
-                        #         enemy_snakes.append(ptspos[1] / MAX_Y)
+                    # for pts in sn['pts']:
+                    #     ptspos = (pts['xx'], pts['yy'])
+                    #     if self.in_view(ptspos):
+                    #         enemy_snakes.append(ptspos[0] / MAX_X)
+                    #         enemy_snakes.append(ptspos[1] / MAX_Y)
 
-                    for food in raw_foods:
-                        if food is None:
-                            continue
-                        foodpos = food['xx'], food['yy']
-                        if self.in_view(foodpos):
-                            foods.append(FoodData(*foodpos, food['sz']))
+                for food in raw_foods:
+                    if food is None:
+                        continue
+                    foodpos = food['xx'], food['yy']
+                    if self.in_view(foodpos):
+                        foods.append(FoodData(*foodpos, food['sz']))
 
-                    self.set_current_data(GameData(snake, SnakeEnvData(foods, enemy_snakes)))
-                # print("Foods Nearby: " + str(len(self.__game_data.env.foods)), snake)
-                else:
-                    print("ya ded and you only got: ", end='')
-                    print(self.browser.execute_script('return window.lastscore.childNodes[1].innerHTML'))
-                    self.is_stopped = True
+                self.set_current_data(GameData(snake, SnakeEnvData(foods, enemy_snakes)))
+            # print("Foods Nearby: " + str(len(self.__game_data.env.foods)), snake)
+            else:
+                print("ya ded and you only got: ", end='')
+                print(self.browser.execute_script('return window.lastscore.childNodes[1].innerHTML'))
+                self.set_stopped(True)
 
-            self.browser.quit()
+        self.browser.quit()
 
 
 if __name__ == '__main__':
