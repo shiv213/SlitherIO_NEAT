@@ -238,8 +238,8 @@ class Game:
             self.__is_dead = alive != -1
             if alive == -1:
                 raw_foods = obj['foods']
-                raw_snake = obj['snake']
-                # raw_snake = None
+                # raw_snake = obj['snake']
+                raw_snake = None
                 other_snakes = obj['snakes']
                 fpsls = obj['fpsls']
                 fmlts = obj['fmlts']

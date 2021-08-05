@@ -25,8 +25,9 @@ def eval_genome(genome, config):
     # run the simulation in here, then output the final score
     net = neat.nn.FeedForwardNetwork.create(genome, config)
     fitnesses = []
-
-    for runs in range(runs_per_net):
+    run = 0
+    while run < runs_per_net:
+        print('creating new sim')
         sim = Game()
         t = threading.Thread(target=sim.run_slither, daemon=True)
         t.start()
@@ -61,7 +62,7 @@ def eval_genome(genome, config):
             t.join()
             # print('after t join')
             fitness = 0.70 * length + 0.30 * elapsed_time
-
+            run += 1
             fitnesses.append(fitness)
 
     # couple of ways to do this
