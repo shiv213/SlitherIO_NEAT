@@ -6,7 +6,7 @@ from game import Game
 import time
 
 runs_per_net = 1
-simulation_seconds = 15.0
+simulation_seconds = 5.0
 
 
 # based off of https://github.com/CodeReclaimers/neat-python/blob/master/examples/single-pole-balancing/evolve
@@ -27,7 +27,7 @@ def eval_genome(genome, config):
 
     for runs in range(runs_per_net):
         sim = Game()
-        t = threading.Thread(target=sim.run_slither, daemon=False)
+        t = threading.Thread(target=sim.run_slither, daemon=True)
         t.start()
         while not sim.is_ready:
             # waiting for the game to get ready
@@ -39,8 +39,7 @@ def eval_genome(genome, config):
             # i think we are allowing ai to press multiple buttons at the same time
             # like you need to be able to boost and turn at the same time
             action = net.activate(inputs)
-            if not sim.is_stopped:
-                sim.submit_action(action)
+            sim.submit_action(action)
             elapsed_time = time.time() - sim.start_time
 
         # we define the fitness to be a weight sum based on the total time survived and the length
@@ -50,6 +49,9 @@ def eval_genome(genome, config):
         else:
             print("genome", sim.start_time, "ended with a score of", length)
         sim.kill_thread()
+        print('after sim kill thread')
+        t.join()
+        print('after t join')
         fitness = 0.70 * length + 0.30 * elapsed_time
 
         fitnesses.append(fitness)
