@@ -10,7 +10,7 @@
 /*jshint esnext: true */
 
 const Vector2 = (function () {
-    var Vector2 = function (x, y) {
+    const Vector2 = function (x, y) {
         this.x = x;
         this.y = y;
     };
@@ -20,7 +20,7 @@ const Vector2 = (function () {
     };
 
     Vector2.prototype.norm = function () {
-        var mag = this.magnitude();
+        const mag = this.magnitude();
         return new Vector2(this.x / mag, this.y / mag);
     };
 
@@ -41,7 +41,7 @@ const Vector2 = (function () {
     };
 
     Vector2.prototype.angle = function () {
-        var ang = Math.atan2(this.y, this.x);
+        let ang = Math.atan2(this.y, this.x);
         if (ang < 0) {
             ang += Math.PI * 2;
         }
@@ -56,43 +56,43 @@ const Vector2 = (function () {
 })();
 
 if (!String.prototype.format) {
-    String.prototype.format = function() {
-        var args = arguments;
-        return this.replace(/{(\d+)}/g, function(match, number) {
+    String.prototype.format = function () {
+        const args = arguments;
+        return this.replace(/{(\d+)}/g, function (match, number) {
             return typeof args[number] != 'undefined' ? args[number] : match
-            ;
+                ;
         });
     };
 }
 
 if (!String.prototype.padStart) {
-    String.prototype.padStart = function(targetLength) {
+    String.prototype.padStart = function (targetLength) {
         return " ".repeat(Math.max(0, targetLength - this.length)) + this;
     };
 }
 
 if (!String.prototype.padStartHTML) {
-    String.prototype.padStartHTML = function(targetLength) {
+    String.prototype.padStartHTML = function (targetLength) {
         return "&nbsp;".repeat(Math.max(0, targetLength - this.length)) + this;
     };
 }
 
 if (!Number.prototype.padStart) {
-    Number.prototype.padStart = function(targetLength) {
-        var s = this.toString();
+    Number.prototype.padStart = function (targetLength) {
+        const s = this.toString();
         return " ".repeat(Math.max(0, targetLength - s.length)) + s;
     };
 }
 
 if (!Number.prototype.padStartHTML) {
-    Number.prototype.padStartHTML = function(targetLength) {
-        var s = this.toString();
+    Number.prototype.padStartHTML = function (targetLength) {
+        const s = this.toString();
         return "&nbsp;".repeat(Math.max(0, targetLength - s.length)) + s;
     };
 }
 
 function appendDiv(id, className, style) {
-    var div = document.createElement("div");
+    const div = document.createElement("div");
     if (id) {
         div.id = id;
     }
@@ -105,46 +105,49 @@ function appendDiv(id, className, style) {
     return document.body.appendChild(div);
 }
 
-(function() {
+(function () {
     'use strict';
 
     // CONSTANTS
     const fov = 124; // Food gathering field of view (0-250)
 
     // STATE
-    var snakeDirV = new Vector2(0,0);
-    var snakePosV = new Vector2(0,0);
+    let snakeDirV = new Vector2(0, 0);
+    let snakePosV = new Vector2(0, 0);
 
-    var enabled = false;
-    var draw = true;
-    var log = false;
-    var filter = false;
+    let enabled = false;
+    let draw = true;
+    let log = false;
+    let filter = false;
 
-    var packetTime = [];
-    var moveTime = [];
-    var snakePos = [];
-    var snakeRot = [ /* dir = -1, ang = -1, wang = -1, sp = -1 */];
-    var moveFreq = [];
-    var rotFreq = [];
-    var debugData = {};
+    // noinspection JSMismatchedCollectionQueryUpdate
+    let packetTime = [];
+    let moveTime = [];
+    const snakePos = [];
+    // noinspection JSMismatchedCollectionQueryUpdate
+    let snakeRot = [ /* dir = -1, ang = -1, wang = -1, sp = -1 */];
+    const moveFreq = [];
+    const rotFreq = [];
+    let debugData = {};
 
-    var positionHUD = null;
-    var ipHUD = null;
-    var fpsHUD = null;
-    var debugHUD = null;
-    var styleHUD = "color: #FFF; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; font-size: 14px; position: fixed; opacity: 0.35; z-index: 7;";
+    let positionHUD = null;
+    let ipHUD = null;
+    let fpsHUD = null;
+    let debugHUD = null;
+    const styleHUD = "color: #FFF; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; font-size: 14px; position: fixed; opacity: 0.35; z-index: 7;";
 
     // UI STUFF
-    var status = "STARTING...";
+    let status = "STARTING...";
 
-    var zoom = function(e) {
+    const zoom = function (e) {
         if (!window.gsc) {
             return;
         }
+        // noinspection JSUnresolvedVariable
         window.gsc *= Math.pow(0.9, e.wheelDelta / -120 || e.detail / 2 || 0);
     };
 
-    var initMouseWheel = function() {
+    const initMouseWheel = function () {
         if (/firefox/i.test(navigator.userAgent)) {
             document.addEventListener("DOMMouseScroll", zoom, false);
         } else {
@@ -152,28 +155,28 @@ function appendDiv(id, className, style) {
         }
     };
 
-    document.addEventListener('keydown', function(e) {
-        if (e.keyCode == 48 /* 0 */) {
+    document.addEventListener('keydown', function (e) {
+        if (e.key === '0') {
             debugData = {};
         }
 
-        if (e.keyCode == 65 /* a */) {
+        if (e.key === 'a') {
             enabled = !enabled;
         }
 
-        if (e.keyCode == 76 /* l */) {
+        if (e.key === 'l') {
             log = !log;
         }
 
-        if (e.keyCode == 70 /* f */) {
+        if (e.key === 'f') {
             filter = !filter;
         }
 
-        if (e.keyCode == 71 /* g */) {
+        if (e.key === 'g') {
             draw = !draw;
         }
 
-        if (e.keyCode == 84 /* t */) {
+        if (e.key === 't') {
             if (!window.pfd) {
                 window.pfd = document.createElement("div");
                 pfd.style.position = "fixed";
@@ -184,7 +187,7 @@ function appendDiv(id, className, style) {
                 pfd.style.background = "rgba(0, 0, 0, .8)";
                 pfd.style.color = "#80FF80";
                 pfd.style.fontFamily = "Verdana";
-                pfd.style.zIndex = 999999;
+                pfd.style.zIndex = "999999";
                 pfd.style.fontSize = "11px";
                 pfd.style.padding = "10px";
                 pfd.style.borderRadius = "30px";
@@ -201,7 +204,7 @@ function appendDiv(id, className, style) {
             }
         }
 
-        if (e.keyCode == 67 /* c */) {
+        if (e.key === 'c') {
             window.bso = {
                 ip: "127.0.0.1",
                 po: 8080
@@ -211,7 +214,7 @@ function appendDiv(id, className, style) {
         }
     }, false);
 
-    var repaintInfoHud = function() {
+    const repaintInfoHud = function () {
         if (!ipHUD) {
             ipHUD = appendDiv("ip-hud", "nsi", styleHUD + "right: 30; bottom: 150px;");
         }
@@ -223,9 +226,11 @@ function appendDiv(id, className, style) {
         }
 
         if (positionHUD) {
+            // noinspection JSUnresolvedVariable
             positionHUD.textContent = "X: " + (~~window.view_xx || 0) + " Y: " + (~~window.view_yy || 0);
         }
 
+        // noinspection JSUnresolvedVariable
         if (fpsHUD && window.fps && window.lrd_mtm) {
             if (Date.now() - window.lrd_mtm > 970) {
                 fpsHUD.textContent = "FPS: " + window.fps;
@@ -233,31 +238,35 @@ function appendDiv(id, className, style) {
         }
 
         if (ipHUD && window.bso) {
-            var currentIP = window.bso.ip + ":" + window.bso.po;
+            const currentIP = window.bso.ip + ":" + window.bso.po;
             ipHUD.textContent = "IP: " + currentIP;
         }
     };
 
-    var repaintDebugHud = function() {
+    const repaintDebugHud = function () {
+        let i;
+        let dt = 0;
+        let dv = 0;
         if (!debugHUD) {
             debugHUD = appendDiv("debug-hud", "nsi", styleHUD + "left: 30px; top: 150px;");
         }
 
-        var html = "Debug by john.koepi / sitano, stacs";
+        let html = "Debug by john.koepi / sitano, stacs";
         html += "<br/>-----------------------------------";
-        html += "<br/>" + "Auto " + (enabled?"on":"off") + " - press 'a' to toggle (" + "status: " + status + ")";
-        html += "<br/>" + "Log " + (log?"on":"off") + " - press 'l' to toggle, press 'f' to filter " + (filter?"on":"off");
-        html += "<br/>" + "Testing " + (testing?"on":"off") + " - press 't' to toggle";
-        html += "<br/>" + "Draw debug " + (draw?"on":"off") + " - press 'g' to toggle, press '0' to reset debug data";
+        html += "<br/>" + "Auto " + (enabled ? "on" : "off") + " - press 'a' to toggle (" + "status: " + status + ")";
+        html += "<br/>" + "Log " + (log ? "on" : "off") + " - press 'l' to toggle, press 'f' to filter " + (filter ? "on" : "off");
+        html += "<br/>" + "Testing " + (testing ? "on" : "off") + " - press 't' to toggle";
+        html += "<br/>" + "Draw debug " + (draw ? "on" : "off") + " - press 'g' to toggle, press '0' to reset debug data";
         html += "<br/>" + "Connect to 127.0.0.1:8080 - press 'c'<br />";
-        if (playing) {
+        // noinspection JSUnresolvedVariable
+        if (window.playing) {
             if (packetTime.length >= 3) {
-                html += "<br/>"     + "packet timing = " +
+                html += "<br/>" + "packet timing = " +
                     packetTime[0].padStartHTML(6) +
                     packetTime[1].padStartHTML(6) +
                     packetTime[2].padStartHTML(6);
             }
-            html += "<br/>"     + "move timing = " + moveTime;
+            html += "<br/>" + "move timing = " + moveTime;
             if (snakeRot.length >= 4) {
                 html += "<br/>" + "rotation input = " +
                     "dir " + snakeRot[0].toFixed(2).padStartHTML(8) +
@@ -265,32 +274,36 @@ function appendDiv(id, className, style) {
                     ", wang " + snakeRot[2].toFixed(2).padStartHTML(8) +
                     ", sp " + snakeRot[3].toFixed(2).padStartHTML(8);
             }
+            // noinspection JSUnresolvedVariable
             html += "<br/>" + "rotation = " +
-                "ang " + snake.ang.toFixed(2).padStartHTML(8) +
-                ", wang " + snake.wang.toFixed(2).padStartHTML(8) +
-                ", eang " + snake.eang.toFixed(2).padStartHTML(8) +
-                ", ehang " + snake.ehang.toFixed(2).padStartHTML(8) +
-                ", wehang " + snake.wehang.toFixed(2).padStartHTML(8) +
-                ", sp " + snake.sp.toFixed(2).padStartHTML(8);
+                "ang " + window.snake.ang.toFixed(2).padStartHTML(8) +
+                ", wang " + window.snake.wang.toFixed(2).padStartHTML(8) +
+                ", eang " + window.snake.eang.toFixed(2).padStartHTML(8) +
+                ", ehang " + window.snake.ehang.toFixed(2).padStartHTML(8) +
+                ", wehang " + window.snake.wehang.toFixed(2).padStartHTML(8) +
+                ", sp " + window.snake.sp.toFixed(2).padStartHTML(8);
             // fam - 0..1 ratio to the next body increment
             // sct - live body parts count
-            html += "<br/>" + "fam: {0}, sct: {1}".format(snake.fam.toFixed(2).padStartHTML(6), snake.sct);
+            // noinspection JSUnresolvedVariable
+            html += "<br/>" + "fam: {0}, sct: {1}".format(window.snake.fam.toFixed(2).padStartHTML(6), window.snake.sct);
+            // noinspection JSUnresolvedVariable
             html += "<br/>" + "sp = {0}, tsp = {1}, fsp = {2}, sfr = {3}, msl = {4}".format(
-                snake.sp.toFixed(2).padStartHTML(6),
-                snake.tsp.toFixed(2).padStartHTML(6),
-                snake.fsp.toFixed(2).padStartHTML(6),
-                snake.sfr.toFixed(2).padStartHTML(6),
-                snake.msl);
-            html += "<br/>" + "fltg = {0}".format(snake.fltg);
+                window.snake.sp.toFixed(2).padStartHTML(6),
+                window.snake.tsp.toFixed(2).padStartHTML(6),
+                window.snake.fsp.toFixed(2).padStartHTML(6),
+                window.snake.sfr.toFixed(2).padStartHTML(6),
+                window.snake.msl);
+            // noinspection JSUnresolvedVariable
+            html += "<br/>" + "fltg = {0}".format(window.snake.fltg);
+            // noinspection JSUnresolvedVariable
             html += "<br/>" + "spang = {0}, sc = {1}, scang = {2}".format(
-                snake.spang.toFixed(2).padStartHTML(6),
-                snake.sc.toFixed(2).padStartHTML(6),
-                snake.scang.toFixed(2).padStartHTML(6));
-            html += "<br/>" + "chl = {0}".format(snake.chl.toFixed(2).padStartHTML(6));
+                window.snake.spang.toFixed(2).padStartHTML(6),
+                window.snake.sc.toFixed(2).padStartHTML(6),
+                window.snake.scang.toFixed(2).padStartHTML(6));
+            // noinspection JSUnresolvedVariable
+            html += "<br/>" + "chl = {0}".format(window.snake.chl.toFixed(2).padStartHTML(6));
             if (moveFreq) {
-                var dt = 0;
-                var dv = 0;
-                for (var i in moveFreq) {
+                for (i in moveFreq) {
                     dt += moveFreq[i][0];
                     dv += moveFreq[i][1];
                 }
@@ -301,17 +314,15 @@ function appendDiv(id, className, style) {
                     dv.toFixed(2).padStartHTML(6));
             }
             if (rotFreq) {
-                var dt = 0;
-                var dv = 0;
-                var prev = 0, dv_count = 0, max = 0;
-                for (var i in rotFreq) {
+                let prev = 0, dv_count = 0, max = 0;
+                for (i in rotFreq) {
                     if (!prev) {
                         prev = rotFreq[0];
                     } else {
                         dt += rotFreq[i][0] - prev[0];
                         dv += rotFreq[i][1];
-                        if (rotFreq[i][1] != 0) {
-                            dv_count ++;
+                        if (rotFreq[i][1] !== 0) {
+                            dv_count++;
                         }
                         if (rotFreq[i][1] > max) {
                             max = rotFreq[i][1];
@@ -326,75 +337,75 @@ function appendDiv(id, className, style) {
                     dv.toFixed(2).padStartHTML(6),
                     max.toFixed(2).padStartHTML(6));
             }
-            html += "<br/>" + "etm = {0}".format(etm.toFixed(2).padStartHTML(6));
+            // noinspection JSUnresolvedVariable
+            html += "<br/>" + "etm = {0}".format(window.etm.toFixed(2).padStartHTML(6));
         }
         debugHUD.innerHTML = html;
     };
 
-    var distToPlayer = function(food) {
-        return Math.abs(food.rx - snake.xx) + Math.abs(food.ry - snake.yy);
+    const distToPlayer = function (food) {
+        return Math.abs(food.rx - window.snake.xx) + Math.abs(food.ry - window.snake.yy);
     };
 
     // Returns a score of how desirable a piece of food is for the player
-    var foodScore = function(food) {
-        var foodSize = food.sz;
+    const foodScore = function (food) {
+        const foodSize = food.sz;
 
-        return foodSize/distanceToFood(food);
+        return foodSize / distanceToFood(food);
     };
 
-    var distanceToFood = function(food) {
-        return snakePosV.sub(new Vector2(food.rx,food.ry)).magnitude();
+    const distanceToFood = function (food) {
+        return snakePosV.sub(new Vector2(food.rx, food.ry)).magnitude();
     };
 
-    var foodWithinFov = function(food) {
-        var towardsFood = directionTowards(new Vector2(food.rx, food.ry));
-        var snakeDir = snakeDirV.gameDirection();
-        return (gameAngleDifference(towardsFood, snakeDir) < (fov/2));
+    const foodWithinFov = function (food) {
+        const towardsFood = directionTowards(new Vector2(food.rx, food.ry));
+        const snakeDir = snakeDirV.gameDirection();
+        return (gameAngleDifference(towardsFood, snakeDir) < (fov / 2));
     };
 
     // Returns the piece of food the player will move towards
     // This is determined by calling "foodScore" on each piece of food
-    var closestFood = function() {
-        var best = foods.filter(function(food) {
+    const closestFood = function () {
+        // noinspection JSUnresolvedVariable
+        return window.foods.filter(function (food) {
             if (!food) return false;
 
             if (distanceToFood(food) > 60) {
                 return true;
             } else {
-                if (foodWithinFov(food)) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return foodWithinFov(food);
             }
-        }).reduce(function(best,current) {
+        }).reduce(function (best, current) {
             // Find the piece of food with the best score
             if (!best) throw "No foods :(";
             if (!current) return best;
             return foodScore(best) > foodScore(current) ? best : current;
         }, {xx: 0, yy: 0, sz: 1});
-
-        return best;
     };
 
-    var directionTowards = function(towardsPos) {
+    const directionTowards = function (towardsPos) {
         return towardsPos.sub(snakePosV).gameDirection();
     };
 
-    var gameAngleDifference = function(a, b) {
-        var phi = Math.abs(b - a) % 250;
+    const gameAngleDifference = function (a, b) {
+        const phi = Math.abs(b - a) % 250;
         return phi > 125 ? 250 - phi : phi;
     };
 
     // ----- INTERFACE -----
-    var setDirection = function(direction) {
+    function getCanvas() {
+        return document.querySelector('canvas.nsi');
+    }
+
+    const setDirection = function (direction) {
         if (!enabled) {
             return;
         }
 
         if (direction >= 0 && direction <= 250) {
-            var ang = 2 * direction * Math.PI / 256;
-            var angV = new Vector2(Math.cos(ang), Math.sin(ang));
+            const ang = 2 * direction * Math.PI / 256;
+            const angV = new Vector2(Math.cos(ang), Math.sin(ang));
             window.xm = 100 * angV.x;
             window.ym = 100 * angV.y;
         } else {
@@ -402,62 +413,63 @@ function appendDiv(id, className, style) {
         }
     };
 
-    var enterSpeedMode = function() {
+    const enterSpeedMode = function () {
         sendPacket(253);
     };
 
-    var exitSpeedMode = function() {
+    const exitSpeedMode = function () {
         sendPacket(254);
     };
 
-    var sendPacket = function(val) {
-        var packet = new Uint8Array(1);
+    const sendPacket = function (val) {
+        const packet = new Uint8Array(1);
         packet[0] = val;
-        if (ws && ws.readyState == 1) {
-            ws.send(packet);
+        if (window.ws && window.ws.readyState === 1) {
+            window.ws.send(packet);
         }
     };
 
-    var getDrawPosition = function(vec) {
-        return new Vector2(mww2 + (vec.x - view_xx) * gsc, mhh2 + (vec.y - view_yy) * gsc);
+    const getDrawPosition = function (vec) {
+        // noinspection JSUnresolvedVariable
+        return new Vector2(window.mww2 + (vec.x - window.view_xx) * gsc, window.mhh2 + (vec.y - window.view_yy) * gsc);
     };
 
-    var drawLineOverlay = function(destination, thickness, colorString) {
-        var canvas = document.getElementsByTagName("canvas")[2];
+    const drawLineOverlay = function (destination, thickness, colorString) {
+        const canvas = getCanvas();
 
-        var ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
         ctx.strokeStyle = colorString;
         ctx.lineWidth = thickness;
 
         ctx.beginPath();
-        var to = getDrawPosition(destination);
+        const to = getDrawPosition(destination);
         ctx.moveTo(to.x, to.y);
 
-        var from = getDrawPosition(snakePosV);
+        const from = getDrawPosition(snakePosV);
         ctx.lineTo(from.x, from.y);
         ctx.stroke();
     };
 
-    var drawLineOverlay2 = function(from, to, thickness, colorString) {
-        var canvas = document.getElementsByTagName("canvas")[2];
+    const drawLineOverlay2 = function (from, to, thickness, colorString) {
+        const canvas = getCanvas();
 
-        var ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
         ctx.strokeStyle = colorString;
         ctx.lineWidth = thickness;
 
         ctx.beginPath();
         from = getDrawPosition(from);
-        ctx.moveTo(from.x,from.y);
+        ctx.moveTo(from.x, from.y);
         to = getDrawPosition(to);
-        ctx.lineTo(to.x,to.y);
+        ctx.lineTo(to.x, to.y);
         ctx.stroke();
     };
 
-    var drawPoint = function(at, thickness, colorString) {
-        var canvas = document.querySelector('canvas.nsi');// document.getElementsByTagName("canvas")[2];
+    const drawPoint = function (at, thickness, colorString) {
+        const canvas = getCanvas();
 
 
-        var ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
         ctx.strokeStyle = colorString;
         ctx.lineWidth = thickness;
 
@@ -467,15 +479,15 @@ function appendDiv(id, className, style) {
         ctx.stroke();
     };
 
-    var drawPoints = function(pts, thickness, colorString) {
-        var canvas = document.querySelector('canvas.nsi');// document.getElementsByTagName("canvas")[2];
+    const drawPoints = function (pts, thickness, colorString) {
+        const canvas = getCanvas();
 
-        var ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
         ctx.strokeStyle = colorString;
         ctx.lineWidth = thickness;
 
         ctx.beginPath();
-        for (var p in pts) {
+        for (let p in pts) {
             p = getDrawPosition(p);
             ctx.rect(p.x, p.y, thickness, thickness);
         }
@@ -483,41 +495,42 @@ function appendDiv(id, className, style) {
         ctx.stroke();
     };
 
-    var drawDebug = function(data) {
-        var canvas = document.getElementsByTagName("canvas")[2];
-        var ctx = canvas.getContext("2d");
+    const drawDebug = function (data) {
+        let p;
+        const canvas = getCanvas();
+        const ctx = canvas.getContext("2d");
         ctx.lineWidth = 1;
         ctx.strokeStyle = '#FFFFFF';
 
-        for (var k in data) {
-            var v = data[k];
-            if (v.type == '.') {
+        for (let k in data) {
+            const v = data[k];
+            if (v.type === '.') {
                 ctx.beginPath();
                 ctx.strokeStyle = v.color;
-                var p = getDrawPosition(v.v);
+                p = getDrawPosition(v.v);
                 ctx.moveTo(p.x, p.y);
                 ctx.rect(p.x, p.y, 1, 1);
                 ctx.stroke();
-            } else if (v.type == '_') {
+            } else if (v.type === '_') {
                 ctx.beginPath();
                 ctx.strokeStyle = v.color;
-                var p = getDrawPosition(v.v);
+                p = getDrawPosition(v.v);
                 ctx.moveTo(p.x, p.y);
-                var p = getDrawPosition(v.w);
+                p = getDrawPosition(v.w);
                 ctx.lineTo(p.x, p.y);
                 ctx.stroke();
-            } else if (v.type == '#') {
+            } else if (v.type === '#') {
                 ctx.beginPath();
                 ctx.strokeStyle = v.color;
-                var p0 = getDrawPosition(v.v);
-                var p1 = getDrawPosition(v.w);
+                const p0 = getDrawPosition(v.v);
+                const p1 = getDrawPosition(v.w);
                 ctx.moveTo(p0.x, p0.y);
                 ctx.rect(p0.x, p0.y, p1.x - p0.x, p1.y - p0.y);
                 ctx.stroke();
-            } else if (v.type == 'o') {
+            } else if (v.type === 'o') {
                 ctx.beginPath();
                 ctx.strokeStyle = v.color;
-                var p = getDrawPosition(v.v);
+                p = getDrawPosition(v.v);
                 ctx.moveTo(p.x, p.y);
                 ctx.arc(p.x, p.y, v.r * gsc, 0, 2 * Math.PI, false);
                 ctx.stroke();
@@ -525,7 +538,7 @@ function appendDiv(id, className, style) {
         }
     };
 
-    var packetTypes = {
+    const packetTypes = {
         a: "Initial setup",
         e: "Snake rotation ccw (?dir ang ?wang ?sp)",
         E: "Snake rotation ccw (dir wang ?sp)",
@@ -558,7 +571,7 @@ function appendDiv(id, className, style) {
         "!": "Draw debug",
     };
 
-    var outPacketTypes = {
+    const outPacketTypes = {
         115: "SetUsernameAndSkin",
         251: "Ping",
         252: "Key",
@@ -569,78 +582,145 @@ function appendDiv(id, className, style) {
         255: "SetVictoryMessage"
     };
 
-    var ssgOriginal = window.startShowGame;
-    window.startShowGame = function() {
+    const ssgOriginal = window.startShowGame;
+    window.startShowGame = function () {
         ssgOriginal();
 
-        var sendOriginal = ws.send;
-        ws.send = function() {
-            sendOriginal.apply(ws, arguments);
+        const sendOriginal = window.ws.send;
+        window.ws.send = function () {
+            sendOriginal.apply(window.ws, arguments);
             if (log) {
-                var data = new Uint8Array(arguments[0]);
-                var len = data.length;
-                var type = data[0];
-                if (type <= 250 && len == 1) {
+                const data = new Uint8Array(arguments[0]);
+                const len = data.length;
+                const type = data[0];
+                if (type <= 250 && len === 1) {
                     console.info("{0} << packet angle {1}".format(Date.now(), 2.0 * 3.14 * type / 250));
                 } else {
-                    var typeString = outPacketTypes[type];
-                    if (!typeString) { typeString = "" + type; }
+                    let typeString = outPacketTypes[type];
+                    if (!typeString) {
+                        typeString = "" + type;
+                    }
                     console.info("{0} << packet {1}, len {2}".format(Date.now(), typeString, len));
                 }
             }
         };
 
-        var onmessageOriginal = ws.onmessage;
-        ws.onmessage = function(msg) {
-            var c = new Uint8Array(msg.data);
-            if (2 <= c.length) {
-                var lptm = window.cptm; // last time
-                var cptm = Date.now(); // current time
+        const onmessageOriginal = window.ws.onmessage;
+        window.ws.onmessage = function (msg) {
+            // snake id
+            let snake;
+            let snakeId;
+            let color;
+            let vy;
+            const c = new Uint8Array(msg.data);
+            let i = 3; // next byte
 
-                var cltm = c[0] << 8 | c[1]; // time since last message from client
-                var dtm = cptm - lptm; // delta time last message from server
-                if (!lptm) { dtm = 0; }
+            /**
+             * Reads a byte from the buffer
+             * @returns {number} the value read from the buffer
+             */
+            function peekByte() {
+                return c[i];
+            }
+
+            /**
+             * Reads a byte from the buffer, automatically incrementing the cursor
+             * @returns {number} the value read from the buffer
+             */
+            function readByte() {
+                let byte = peekByte();
+                i += 1;
+                return byte;
+            }
+
+            /**
+             * Reads a word from the buffer
+             * @returns {number} the value read from the buffer
+             */
+            function peekWord() {
+                return c[i] << 8 | c[i + 1];
+            }
+
+            /**
+             * Reads a word from the buffer, automatically incrementing the cursor
+             * @returns {number} the value read from the buffer
+             */
+            function readWord() {
+                let word = peekWord();
+                i += 2;
+                return word;
+            }
+
+            /**
+             * Reads three bytes from the buffer
+             * @returns {number} the value read from the buffer
+             */
+            function peek3Bytes() {
+                return c[i] << 16 | c[i + 1] << 8 | c[i + 2];
+            }
+
+            /**
+             * Reads three bytes from the buffer, automatically incrementing the cursor
+             * @returns {number} the value read from the buffer
+             */
+            function read3Bytes() {
+                let triple = peek3Bytes();
+                i += 3;
+                return triple;
+            }
+
+            if (2 <= c.length) {
+                // noinspection JSUnresolvedVariable
+                const lptm = window.cptm; // last time
+                const cptm = Date.now(); // current time
+
+                const cltm = peekWord(); // time since last message from client
+                let dtm = cptm - lptm; // delta time last message from server
+                if (!lptm) {
+                    dtm = 0;
+                }
                 // etm += Math.max(-180, Math.min(180, srvtm - cltm)); // [180; 180 + 180]
 
                 packetTime = [dtm, cltm, Math.max(-180, Math.min(180, dtm - cltm))];
 
-                var packetType = String.fromCharCode(c[2]); // packet type
-                var i = 3; // next byte
+                let packetType = String.fromCharCode(c[2]); // packet type
 
-                var playerSnakeId = window.snake ? window.snake.id : 0;
-                var xx = 0, yy = 0;
 
-                if ("g" == packetType || "n" == packetType || "G" == packetType || "N" == packetType) {
-                    var snakeId = c[i] << 8 | c[i + 1]; i += 2; // snake id
-                    var snake = os["s" + snakeId]; // snake
+                const playerSnakeId = window.snake ? window.snake.id : 0;
+                let xx = 0, yy = 0;
+                let vx;
+                if ("g" === packetType || "n" === packetType || "G" === packetType || "N" === packetType) {
+                    snakeId = readWord();
+                    snake = window.os["s" + snakeId]; // snake
 
-                    if (3 <= protocol_version) {
-                        if ("g" == packetType || "n" == packetType) {
-                            xx = c[i] << 8 | c[i + 1]; i += 2;
-                            yy = c[i] << 8 | c[i + 1]; i += 2;
+                    // noinspection JSUnresolvedVariable
+                    if (3 <= window.protocol_version) {
+                        if ("g" === packetType || "n" === packetType) {
+                            xx = readWord()
+                            yy = readWord()
                         } else {
-                            var head = snake.pts[snake.pts.length - 1];
+                            const head = window.snake.pts[window.snake.pts.length - 1];
 
-                            xx = head.xx + c[i] - 128; i++;
-                            yy = head.yy + c[i] - 128; i++;
+                            xx = head.xx + readByte() - 128;
+                            yy = head.yy + readByte() - 128;
                         }
                     } else {
-                        xx = (c[i] << 16 | c[i + 1] << 8 | c[i + 2]) / 5; i += 3;
-                        yy = (c[i] << 16 | c[i + 1] << 8 | c[i + 2]) / 5; i += 3;
+                        xx = read3Bytes() / 5;
+                        yy = read3Bytes() / 5;
                     }
 
-                    if (log && (!filter || playerSnakeId == snakeId)) {
+                    if (log && (!filter || playerSnakeId === snakeId)) {
                         console.info("{0} (srv {1}ms | cl {2}ms): packet {3}, snake s{4} [{5}]"
-                                     .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], snakeId, [xx, yy]));
+                            .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], snakeId, [xx, yy]));
                     }
 
-                    if (snake == window.snake) {
+                    if (snake === window.snake) {
                         snakePos.push(new Vector2(xx, yy));
 
                         if (moveTime.length < 2) {
-                            moveTime = [ Date.now(), 0, 0, 0 ];
+                            moveTime = [Date.now(), 0, 0, 0];
                         } else {
-                            var last = snakePos.length;
+                            const last = snakePos.length;
 
                             moveTime[1] = Date.now() - moveTime[0];
                             moveTime[0] = Date.now();
@@ -663,141 +743,149 @@ function appendDiv(id, className, style) {
                         if (snake) {
                             var l = snakeDirV.scalarMul(10).magnitude();
                             //if (l > 200) {
-                                var t = (etm / 8 * snake.sp / 4) * lag_mult;
+                                var t = (etm / 8 * window.snake.sp / 4) * lag_mult;
                                 console.log(snakeDirV.scalarMul(10).magnitude() + ", etm = " + etm, ", t = " + t);
                             //}
                         }*/
                     }
-                } else if ("e" == packetType || "E" == packetType || "3" == packetType || "4" == packetType || "5" == packetType) {
+                } else if ("e" === packetType || "E" === packetType || "3" === packetType || "4" === packetType || "5" === packetType) {
                     const left = 1;
                     const right = 2;
 
-                    var dir = -1, ang = -1, wang = -1, sp = -1;
-                    var packetLen2 = c.length - 2;
+                    let dir = -1, ang = -1, wang = -1, sp = -1;
+                    const packetLen2 = c.length - 2;
 
-                    var snakeId = c[i] << 8 | c[i + 1]; i += 2; // snake id
+                    snakeId = readWord() // snake id
 
-                    if (6 <= protocol_version) {
-                        if (6 == packetLen2) {
+                    // noinspection JSUnresolvedVariable
+                    if (6 <= window.protocol_version) {
+                        if (6 === packetLen2) {
                             // "e" - left, "4" - right
-                            dir = "e" == packetType ? left : right;
-                            ang = 2 * c[i] * Math.PI / 256; i++;
-                            wang = 2 * c[i] * Math.PI / 256; i++;
-                            sp = c[i] / 18;
-                        } else {
-                            if (5 == packetLen2) {
-                                if ("e" == packetType) {
-                                    ang = 2 * c[i] * Math.PI / 256; i++;
-                                    sp = c[i] / 18;
-                                } else {
-                                    if ("E" == packetType) {
-                                        dir = left;
-                                        wang = 2 * c[i] * Math.PI / 256; i++;
-                                        sp = c[i] / 18;
-                                    } else {
-                                        if ("4" == packetType) {
-                                            dir = right;
-                                            wang = 2 * c[i] * Math.PI / 256; i++;
-                                            sp = c[i] / 18;
-                                        } else {
-                                            if ("3" == packetType) {
-                                                dir = left;
-                                                ang = 2 * c[i] * Math.PI / 256; i++;
-                                                wang = 2 * c[i] * Math.PI / 256;
-                                            } else {
-                                                if ("5" == packetType) {
-                                                    dir = right;
-                                                    ang = 2 * c[i] * Math.PI / 256; i++;
-                                                    wang = 2 * c[i] * Math.PI / 256;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (4 == packetLen2) {
-                                    if ("e" == packetType) {
-                                        ang = 2 * c[i] * Math.PI / 256;
-                                    } else {
-                                        if ("E" == packetType) {
-                                            dir = left;
-                                            wang = 2 * c[i] * Math.PI / 256;
-                                        } else {
-                                            if ("4" == packetType) {
-                                                dir = right;
-                                                wang = 2 * c[i] * Math.PI / 256;
-                                            } else {
-                                                if ("3" == packetType) {
-                                                    sp = c[i] / 18;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                            dir = "e" === packetType ? left : right;
+                            ang = 2 * readByte() * Math.PI / 256;
+                            wang = 2 * readByte() * Math.PI / 256;
+                            sp = peekByte() / 18;
+                        } else if (5 === packetLen2) {
+                            switch (packetType) {
+                                case "e":
+                                    ang = 2 * readByte() * Math.PI / 256;
+                                    sp = peekByte() / 18;
+                                    break;
+                                case "E":
+                                    dir = left;
+                                    wang = 2 * readByte() * Math.PI / 256;
+                                    sp = peekByte() / 18;
+                                    break;
+                                case "4":
+                                    dir = right;
+                                    wang = 2 * readByte() * Math.PI / 256;
+                                    sp = peekByte() / 18;
+                                    break;
+                                case "3":
+                                    dir = left;
+                                    ang = 2 * readByte() * Math.PI / 256;
+                                    wang = 2 * peekByte() * Math.PI / 256;
+                                    break;
+                                case "5":
+                                    dir = right;
+                                    ang = 2 * readByte() * Math.PI / 256;
+                                    wang = 2 * peekByte() * Math.PI / 256;
+                                    break;
                             }
+                        } else if (4 === packetLen2) {
+                            switch (packetType) {
+                                case "e":
+                                    ang = 2 * peekByte() * Math.PI / 256;
+                                    break;
+                                case "E":
+                                    dir = left;
+                                    wang = 2 * peekByte() * Math.PI / 256;
+                                    break;
+                                case "4":
+                                    dir = right;
+                                    wang = 2 * peekByte() * Math.PI / 256;
+                                    break;
+                                case "3":
+                                    sp = peekByte() / 18;
+                                    break;
+                            }
+                        }
+                    } else if (3 <= window.protocol_version) {
+                        // N.B: This whole section used to have all instances of c[i + 1] as i[i + 1],
+                        // which makes no sense, as i is a number acting as a cursor into the data array,
+                        // so we cannot treat this as a normal array. i think it was a typo that meant c[c + 1]
+                        // so i replaced it as such
+                        // this seems to be handling old packets anyways, especially because it references a window.q which no longer exists
+                        // so its not like it matters too much i dont think?
+
+
+
+                        if ("3" !== packetType) {
+                            if (8 === packetLen2 || (7 === packetLen2 || (6 === packetLen2 && "3" !== packetType || 5 === packetLen2 && "3" !== packetType))) {
+                                dir = "e" === packetType ? 1 : 2;
+                            }
+                        }
+                        if (8 === packetLen2 || (7 === packetLen2 || (5 === packetLen2 && "3" === packetType || 6 === packetLen2 && "3" === packetType))) {
+                            ang = 2 * readWord() * Math.PI / 65535;
+                        }
+                        if (8 === packetLen2 || (7 === packetLen2 || (5 === packetLen2 && "3" !== packetType || 6 === packetLen2 && "3" !== packetType))) {
+                            wang = 2 * readWord() * Math.PI / 65535;
+                        }
+                        if (8 === packetLen2 || (6 === packetLen2 || 4 === e)) {
+                            sp = peekByte() / 18;
                         }
                     } else {
-                        if (3 <= protocol_version) {
-                            if ("3" != packetType) {
-                                if (8 == packetLen2 || (7 == packetLen2 || (6 == packetLen2 && "3" != packetType || 5 == packetLen2 && "3" != packetType))) {
-                                    dir = "e" == packetType ? 1 : 2;
-                                }
-                            }
-                            if (8 == packetLen2 || (7 == packetLen2 || (5 == packetLen2 && "3" == packetType || 6 == packetLen2 && "3" == packetType))) {
-                                ang = 2 * (c[i] << 8 | i[i + 1]) * Math.PI / 65535;
-                                i += 2;
-                            }
-                            if (8 == packetLen2 || (7 == packetLen2 || (5 == packetLen2 && "3" != packetType || 6 == packetLen2 && "3" != packetType))) {
-                                wang = 2 * (c[i] << 8 | i[i + 1]) * Math.PI / 65535;
-                                i += 2;
-                            }
-                            if (8 == packetLen2 || (6 == packetLen2 || 4 == e)) {
-                                sp = c[i] / 18;
-                            }
-                        } else {
-                            if (11 == q || (8 == q || (9 == q || 6 == q))) {
-                                dir = c[i] - 48;
-                                i++;
-                            }
-                            if (11 == q || (7 == q || (9 == q || 5 == q))) {
-                                ang = 2 * (c[i] << 16 | i[i + 1] << 8 | i[i + 2]) * Math.PI / 16777215;
-                                i += 3;
-                            }
-                            if (11 == q || (8 == q || (9 == q || 6 == q))) {
-                                wang = 2 * (c[i] << 16 | i[i + 1] << 8 | i[i + 2]) * Math.PI / 16777215;
-                                i += 3;
-                            }
-                            if (11 == q || (7 == q || (8 == q || 4 == q))) {
-                                sp = (c[i] << 8 | i[i + 1]) / 1E3;
-                            }
+                        let q = window.q;
+
+                        if (11 === q || (8 === q || (9 === q || 6 === q))) {
+                            dir = readByte() - 48;
+                        }
+                        if (11 === q || (7 === q || (9 === q || 5 === q))) {
+                            ang = 2 * read3Bytes() * Math.PI / 16777215;
+                        }
+                        if (11 === q || (8 === q || (9 === q || 6 === q))) {
+                            wang = 2 * read3Bytes() * Math.PI / 16777215;
+                        }
+                        if (11 === q || (7 === q || (8 === q || 4 === q))) {
+                            sp = peekWord() / 1E3;
                         }
                     }
 
-                    var snake = os["s" + snakeId]; // snake
-                    var dAng = -1;
-                    var spang = -1;
+                    snake = window.os["s" + snakeId]; // snake
+                    let dAng = -1;
+                    let spang = -1;
                     if (snake) {
-                        if (-1 != ang) {
-                            dAng = (ang - snake.ang) % pi2;
-                            if (0 > dAng) { dAng += pi2; }
-                            if (dAng > Math.PI) { dAng -= pi2; }
+                        if (-1 !== ang) {
+                            // noinspection JSUnresolvedVariable
+                            let pi2 = window.pi2
+                            dAng = (ang - window.snake.ang) % pi2;
+                            if (0 > dAng) {
+                                dAng += pi2;
+                            }
+                            if (dAng > Math.PI) {
+                                dAng -= pi2;
+                            }
                         }
-                        if (-1 != sp) {
+                        if (-1 !== sp) {
+                            let {spangdv, snake} = window
                             spang = snake.sp / spangdv;
-                            if (1 < snake.spang) { spang = 1; }
+                            // noinspection JSUnresolvedVariable
+                            if (1 < snake.spang) {
+                                spang = 1;
+                            }
                         }
                     }
 
-                    if (log && (!filter || playerSnakeId == snakeId)) {
+                    if (log && (!filter || playerSnakeId === snakeId)) {
                         console.info("{0} (srv {1}ms | cl {2}ms): packet {3}, snake s{4} [dir = {5}, ang = {6}, wang = {7}, sp = {8}, dAng = {9}, spang = {10}]"
-                                     .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], snakeId, dir, ang, wang, sp, dAng, spang));
+                            .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], snakeId, dir, ang, wang, sp, dAng, spang));
                     }
 
-                    if (snake == window.snake) {
+                    if (snake === window.snake) {
                         snakeRot = [dir, ang, wang, sp];
 
-                        if (-1 != ang) {
-                            rotFreq.push([new Date(), Math.abs(ang - snake.ang)]);
+                        if (-1 !== ang) {
+                            rotFreq.push([new Date(), Math.abs(ang - window.snake.ang)]);
                         } else {
                             rotFreq.push([new Date(), 0]);
                         }
@@ -806,50 +894,49 @@ function appendDiv(id, className, style) {
                             rotFreq.shift();
                         }
                     }
-                } else if ("W" == packetType) {
-                    xx = c[i]; i ++;
-                    yy = c[i]; i ++;
+                } else if ("W" === packetType) {
+                    xx = readByte();
+                    yy = readByte();
 
                     if (log) {
                         console.info("{0} (srv {1}ms | cl {2}ms): packet {3}, [{4}]"
-                                     .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], [xx, yy]));
+                            .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], [xx, yy]));
                     }
-                } else if ("w" == packetType) {
-                    if (8 <= protocol_version) {
-                        xx = c[i] << 8 | c[i + 1]; i += 2;
-                        yy = c[i] << 8 | c[i + 1]; i += 2;
+                } else if ("w" === packetType) {
+                    // noinspection JSUnresolvedVariable
+                    if (8 <= window.protocol_version) {
+                        xx = readWord()
+                        yy = readWord()
                     } else {
                         // f = c[i] ?? add if == 1
-                        i ++;
-                        xx = c[i] << 8 | c[i + 1]; i += 2;
-                        yy = c[i] << 8 | c[i + 1]; i += 2;
+                        i += 1;
+                        xx = readWord()
+                        yy = readWord()
                     }
 
                     if (log) {
                         console.info("{0} (srv {1}ms | cl {2}ms): packet {3}, [{5}]"
-                                     .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], [xx, yy]));
+                            .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], [xx, yy]));
                     }
-                } else if ("0" == packetType) {
+                } else if ("0" === packetType) {
                     debugData = {};
 
                     if (log) {
                         console.info("{0} (srv {1}ms | cl {2}ms): packet {3}"
-                                     .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType]));
+                            .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType]));
                     }
 
                     return;
-                } else if ("!" == packetType) {
-                    var count = 0;
-
+                } else if ("!" === packetType) {
+                    let count = 0;
                     while (i < c.length) {
-                        packetType = String.fromCharCode(c[i]); i ++;
-                        count ++;
-
-                        if (packetType == '.') {
-                            var id = c[i] << 16 | c[i + 1] << 8 | c[i + 2]; i += 3;
-                            var vx = c[i] << 8 | c[i + 1]; i += 2;
-                            var vy = c[i] << 8 | c[i + 1]; i += 2;
-                            var color = '#' + (c[i] << 16 | c[i + 1] << 8 | c[i + 2]).toString(16); i += 3;
+                        packetType = String.fromCharCode(readByte());
+                        count++;
+                        let id = read3Bytes();
+                        if (packetType === '.') {
+                            vx = readWord()
+                            vy = readWord()
+                            color = '#' + (read3Bytes()).toString(16);
                             if (id > 0) {
                                 debugData[id] = {
                                     'type': packetType,
@@ -857,13 +944,12 @@ function appendDiv(id, className, style) {
                                     'color': color
                                 };
                             }
-                        } else if (packetType == '_' || packetType == '#') {
-                            var id = c[i] << 16 | c[i + 1] << 8 | c[i + 2]; i += 3;
-                            var vx = c[i] << 8 | c[i + 1]; i += 2;
-                            var vy = c[i] << 8 | c[i + 1]; i += 2;
-                            var wx = c[i] << 8 | c[i + 1]; i += 2;
-                            var wy = c[i] << 8 | c[i + 1]; i += 2;
-                            var color = '#' + (c[i] << 16 | c[i + 1] << 8 | c[i + 2]).toString(16); i += 3;
+                        } else if (packetType === '_' || packetType === '#') {
+                            vx = readWord()
+                            vy = readWord()
+                            const wx = readWord()
+                            const wy = readWord()
+                            color = '#' + (read3Bytes()).toString(16);
                             if (id > 0) {
                                 debugData[id] = {
                                     'type': packetType,
@@ -872,12 +958,11 @@ function appendDiv(id, className, style) {
                                     'color': color,
                                 };
                             }
-                        } else if (packetType == 'o') {
-                            var id = c[i] << 16 | c[i + 1] << 8 | c[i + 2]; i += 3;
-                            var vx = c[i] << 8 | c[i + 1]; i += 2;
-                            var vy = c[i] << 8 | c[i + 1]; i += 2;
-                            var r = c[i] << 8 | c[i + 1]; i += 2;
-                            var color = '#' + (c[i] << 16 | c[i + 1] << 8 | c[i + 2]).toString(16); i += 3;
+                        } else if (packetType === 'o') {
+                            vx = readWord()
+                            vy = readWord()
+                            const r = readWord()
+                            color = '#' + (read3Bytes()).toString(16);
                             if (id > 0) {
                                 debugData[id] = {
                                     'type': packetType,
@@ -892,53 +977,60 @@ function appendDiv(id, className, style) {
                     if (log) {
                         debugger;
                         console.info("{0} (srv {1}ms | cl {2}ms): packet {3}, count {4}"
-                                     .format(cptm, dtm, cltm, packetType + "/" + packetTypes["!"], count));
+                            .format(cptm, dtm, cltm, packetType + "/" + packetTypes["!"], count));
                     }
 
                     return;
                 } else {
-                    var snakeId = c[i] << 8 | c[i + 1]; i += 2; // snake id
-                    if (log && (!filter || playerSnakeId == snakeId || !snakeId)) {
-                        if (!os[snakeId]) { snakeId = 0; }
+                    snakeId = readWord() // snake id
+                    if (log && (!filter || playerSnakeId === snakeId || !snakeId)) {
+                        if (!window.os[snakeId]) {
+                            snakeId = 0;
+                        }
                         if (snakeId) {
                             console.info("{0} (srv {1}ms | cl {2}ms): packet {3}, snake s{4}"
-                                         .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], snakeId));
+                                .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType], snakeId));
                         } else {
                             console.info("{0} (srv {1}ms | cl {2}ms): packet {3}"
-                                         .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType]));
+                                .format(cptm, dtm, cltm, packetType + "/" + packetTypes[packetType]));
                         }
                     }
                 }
             }
 
-            onmessageOriginal.apply(ws, [msg]);
+            onmessageOriginal.apply(window.ws, [msg]);
         };
     };
 
     // ----- /INTERFACE -----
-    var render = function() {
+    const render = function () {
+        let opponentSegmentPos;
+        let pt;
+        let point;
+        let currentSnake;
         repaintInfoHud();
         repaintDebugHud();
 
         try {
-            var sumVec = new Vector2(0,0);
-            var playerSnakeId = window.snake ? window.snake.id : 0;
+            let snakeId;
+            let sumVec = new Vector2(0, 0);
+            const playerSnakeId = window.snake ? window.snake.id : 0;
 
-            for (var snakeId in os) {
-                if (os.hasOwnProperty(snakeId)) {
-                    if (snakeId != "s" + playerSnakeId) {
+            for (snakeId in window.os) {
+                if (window.os.hasOwnProperty(snakeId)) {
+                    if (snakeId !== "s" + playerSnakeId) {
                         // Opponent Snake
-                        var currentSnake = os[snakeId];
+                        currentSnake = window.os[snakeId];
 
-                        for (var point in currentSnake.pts) {
-                            var pt = currentSnake.pts[point];
-                            var opponentSegmentPos = new Vector2(pt.xx,pt.yy);
+                        for (point in currentSnake.pts) {
+                            pt = currentSnake.pts[point];
+                            opponentSegmentPos = new Vector2(pt.xx, pt.yy);
 
-                            var vecToOpponent = opponentSegmentPos.sub(snakePosV);
-                            var opponentMagnitude = vecToOpponent.magnitude();
+                            const vecToOpponent = opponentSegmentPos.sub(snakePosV);
+                            const opponentMagnitude = vecToOpponent.magnitude();
 
-                            var normVec = vecToOpponent.norm();
-                            var vectorInverse = normVec.scalarMul(3600/(gsc * (Math.pow(opponentMagnitude, 2))));
+                            const normVec = vecToOpponent.norm();
+                            const vectorInverse = normVec.scalarMul(3600 / (gsc * (Math.pow(opponentMagnitude, 2))));
                             sumVec = sumVec.add(vectorInverse);
                         }
                     }
@@ -946,27 +1038,29 @@ function appendDiv(id, className, style) {
             }
 
             sumVec = sumVec.scalarMul(-1);
-            var threshold = sumVec.magnitude();
+            const threshold = sumVec.magnitude();
 
             if (threshold > 1) {
-                var avoidDirection = directionTowards(snakePosV.add(sumVec));
+                const avoidDirection = directionTowards(snakePosV.add(sumVec));
                 status = "avoiding threat, threshold: " + threshold.toFixed(2);
                 setDirection(avoidDirection);
                 // drawLineOverlay(snakePosV.add(sumVec.norm().scalarMul(200)), threshold * 10, "#FF0000");
             } else {
-                if (!foods.length) {
-                    setDirection(directionTowards(new Vector2(grd/2, grd/2)));
+                // noinspection JSUnresolvedVariable
+                if (!window.foods.length) {
+                    // noinspection JSUnresolvedVariable
+                    setDirection(directionTowards(new Vector2(window.grd / 2, window.grd / 2)));
                     status = "returning to centre";
                 } else {
-                    var closest = closestFood();
+                    const closest = closestFood();
                     status = "feeding, threshold: " + threshold.toFixed(2);
                     setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
                     // drawLineOverlay(new Vector2(closest.rx, closest.ry), 7, "#7FFF00");
                 }
             }
 
-            if (snake) {
-                var newSnakePosV = new Vector2(snake.xx, snake.yy);
+            if (window.snake) {
+                const newSnakePosV = new Vector2(window.snake.xx, window.snake.yy);
                 snakeDirV = newSnakePosV.sub(snakePosV);
                 snakePosV = newSnakePosV;
                 window.draw = true;
@@ -975,16 +1069,17 @@ function appendDiv(id, className, style) {
                     drawLineOverlay(snakePosV.add(snakeDirV.scalarMul(10)), 1, "#D0FFD0");
                     drawPoints(snakePos, 2, "#FFFFFF");
 
-                    for (var snakeId in os) {
-                        if (os.hasOwnProperty(snakeId)) {
+                    for (snakeId in window.os) {
+                        if (window.os.hasOwnProperty(snakeId)) {
                             if (snakeId === "s" + playerSnakeId) /*(snakeId != "s" + playerSnakeId)*/ {
                                 // Opponent Snake
-                                var currentSnake = os[snakeId];
-
+                                currentSnake = window.os[snakeId];
+                                // ynx0 code:
+                                // noinspection JSUnresolvedVariable
                                 let les_pts = currentSnake.pts.filter((pt) => pt.eiu === 1)
-                                for (var point in currentSnake.pts) {
-                                    var pt = currentSnake.pts[point];
-                                    var opponentSegmentPos = new Vector2(pt.xx,pt.yy);
+                                for (point in currentSnake.pts) {
+                                    pt = currentSnake.pts[point];
+                                    opponentSegmentPos = new Vector2(pt.xx, pt.yy);
                                     drawPoint(opponentSegmentPos, 5, '#FFFFFF');
                                     //var vecToOpponent = opponentSegmentPos.sub(snakePosV);
                                     //var opponentMagnitude = vecToOpponent.magnitude();
@@ -1001,31 +1096,32 @@ function appendDiv(id, className, style) {
                     if (snake) {
                         var l = snakeDirV.scalarMul(10).magnitude();
                         if (l > 100) {
-                            var t = (etm / 8 * snake.sp / 4) * lag_mult;
+                            var t = (etm / 8 * window.snake.sp / 4) * lag_mult;
                             console.log(snakeDirV.scalarMul(10).magnitude() + ", etm = " + etm, ", t = " + t);
                         }
                     }*/
 
-                    // drawLineOverlay(snakePosV.add(new Vector2(snake.fx, snake.fy)), 1, "#FF0000");
+                    // drawLineOverlay(snakePosV.add(new Vector2(window.snake.fx, window.snake.fy)), 1, "#FF0000");
 
                     // Snake angles
                     if (snakeRot.length > 0) {
                         // ang = current snake angle
-                        var ang = snakeRot[1];
-                        if (ang != -1) {
+                        const ang = snakeRot[1];
+                        if (ang !== -1) {
                             drawLineOverlay(newSnakePosV.add(new Vector2(Math.cos(ang), Math.sin(ang)).scalarMul(50)), 1, "#FF0000");
                         }
                         // wang = target angle
-                        var wang = snakeRot[2];
-                        if (wang != -1) {
+                        const wang = snakeRot[2];
+                        if (wang !== -1) {
                             drawLineOverlay(newSnakePosV.add(new Vector2(Math.cos(wang), Math.sin(wang)).scalarMul(50)), 1, "#0000FF");
                         }
                     }
 
                     // Snake parts
-                    for (var pi in snake.pts) {
-                        var part = snake.pts[pi];
-                        var pos = new Vector2(part.xx, part.yy);
+                    for (let pi in window.snake.pts) {
+                        const part = window.snake.pts[pi];
+                        const pos = new Vector2(part.xx, part.yy);
+                        // noinspection JSUnresolvedVariable
                         drawLineOverlay2(pos, pos.add(new Vector2(part.ebx, part.eby)), 1, "#F0F0FF");
                         drawLineOverlay2(pos, pos.add(new Vector2(part.fx, part.fy)), 1, "#FF0000");
                     }
@@ -1038,10 +1134,11 @@ function appendDiv(id, className, style) {
             console.log("Error caught: " + e);
         }
 
-        raf(render);
+        // slither.io alias to requestAnimationFrame, maybe with custom logic?
+        window.raf(render);
     };
 
-    raf(render);
+    window.raf(render);
 
     initMouseWheel();
 })();
