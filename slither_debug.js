@@ -251,7 +251,8 @@ function appendDiv(id, className, style) {
             debugHUD = appendDiv("debug-hud", "nsi", styleHUD + "left: 30px; top: 150px;");
         }
 
-        let html = "Debug by john.koepi / sitano, stacs";
+        let html = "Debug Panel &mdash; ynx0 / shiv213"
+        html += "(Original by john.koepi / sitano, stacs)";
         html += "<br/>-----------------------------------";
         html += "<br/>" + "Auto " + (enabled ? "on" : "off") + " - press 'a' to toggle (" + "status: " + status + ")";
         html += "<br/>" + "Log " + (log ? "on" : "off") + " - press 'l' to toggle, press 'f' to filter " + (filter ? "on" : "off");
