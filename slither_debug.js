@@ -9,51 +9,50 @@
 
 /*jshint esnext: true */
 
-const Vector2 = (function () {
-    const Vector2 = function (x, y) {
+class Vector2 {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
-    };
+    }
 
-    Vector2.prototype.magnitude = function () {
+    magnitude() {
         return Math.hypot(this.x, this.y);
-    };
+    }
 
-    Vector2.prototype.norm = function () {
+    norm() {
         const mag = this.magnitude();
         return new Vector2(this.x / mag, this.y / mag);
-    };
+    }
 
-    Vector2.prototype.scalarMul = function (scalar) {
+    scalarMul(scalar) {
         return new Vector2(scalar * this.x, scalar * this.y);
-    };
+    }
 
-    Vector2.prototype.add = function (otherVec) {
+    add(otherVec) {
         return new Vector2(this.x + otherVec.x, this.y + otherVec.y);
-    };
+    }
 
-    Vector2.prototype.sub = function (otherVec) {
+    sub(otherVec) {
         return new Vector2(this.x - otherVec.x, this.y - otherVec.y);
-    };
+    }
 
-    Vector2.prototype.toString = function () {
-        return "(" + this.x + ", " + this.y + ")";
-    };
+    toString() {
+        return `Vector { x=${this.x}, y=${this.y} }`;
+    }
 
-    Vector2.prototype.angle = function () {
+    angle() {
         let ang = Math.atan2(this.y, this.x);
         if (ang < 0) {
             ang += Math.PI * 2;
         }
         return ang;
-    };
+    }
 
-    Vector2.prototype.gameDirection = function () {
+    gameDirection() {
         return (125 / Math.PI) * this.angle();
-    };
+    }
+}
 
-    return Vector2;
-})();
 
 if (!String.prototype.format) {
     String.prototype.format = function () {
