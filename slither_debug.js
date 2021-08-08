@@ -53,20 +53,14 @@ class Vector2 {
     }
 }
 
+// MARK - polyfills and util functions
 
 if (!String.prototype.format) {
     String.prototype.format = function () {
         const args = arguments;
         return this.replace(/{(\d+)}/g, function (match, number) {
-            return typeof args[number] != 'undefined' ? args[number] : match
-                ;
+            return typeof args[number] != 'undefined' ? args[number] : match;
         });
-    };
-}
-
-if (!String.prototype.padStart) {
-    String.prototype.padStart = function (targetLength) {
-        return " ".repeat(Math.max(0, targetLength - this.length)) + this;
     };
 }
 
@@ -817,7 +811,6 @@ function appendDiv(id, className, style) {
                         // so i replaced it as such
                         // this seems to be handling old packets anyways, especially because it references a window.q which no longer exists
                         // so its not like it matters too much i dont think?
-
 
 
                         if ("3" !== packetType) {
