@@ -60,7 +60,7 @@ MAX_SPEED = 14
 
 
 class Game:
-    def __init__(self, headless=True):
+    def __init__(self, headless=False):
         self.__game_data = None
         self.__is_dead = False  # before self.__is_ready, this value is invalid
         self.__is_ready = False
@@ -188,6 +188,8 @@ class Game:
         self.browser = webdriver.Chrome(options=chrome_options)
         # noinspection HttpUrlsUsage
         self.browser.get("http://slither.io/")
+        # TODO potentially wait here for the scoreboard to appear to know that we started a successful game
+        # or just check for alive here.........
         try:
             nickname = WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.ID, "nick")))
             if nickname.is_displayed() and nickname.is_enabled():
