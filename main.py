@@ -6,7 +6,7 @@ from game import Game
 import time
 
 runs_per_net = 1
-simulation_seconds = 5.0
+simulation_seconds = 25.0
 
 
 # based off of https://github.com/CodeReclaimers/neat-python/blob/master/examples/single-pole-balancing/evolve
@@ -98,7 +98,8 @@ def run(config_file):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(25, 600))  # every 25 epochs(?) or every 600 seconds
+    # every 25 epochs(?) or every 600 seconds:
+    p.add_reporter(neat.Checkpointer(25, 600, filename_prefix="checkpoints/checkpoint-"))
 
     # Run for up to 300 generations.
     winner = p.run(eval_genomes, 300)
@@ -115,6 +116,15 @@ def run(config_file):
     visualize.plot_species(stats, view=True)
 
 
+def run_checkpoint(checkpoint):
+    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-%i' % checkpoint)
+    winner = p.run(eval_genomes, 1)  # find the winner in restored population
+    # winner_net = neat.nn.FeedForwardNetwork.create(winner, p.config)
+    print(p.best_genome)
+    # show winner net
+    visualize.draw_net(p.config, winner, True)
+
+
 # TODO we'll need to do multithreading for running multiple agents at the same time
 
 if __name__ == '__main__':
@@ -122,6 +132,7 @@ if __name__ == '__main__':
         local_dir = path.dirname(__file__)
         config_path = path.join(local_dir, 'config-feedforward.ini')
         run(config_path)
+        # run_checkpoint(40)
     except KeyboardInterrupt:
         # todo save some checkpoints here
         print("Exitting due to Ctrl+C")

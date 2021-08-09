@@ -60,7 +60,7 @@ MAX_SPEED = 14
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, headless=True):
         self.__game_data = None
         self.__is_dead = False  # before self.__is_ready, this value is invalid
         self.__is_ready = False
@@ -68,6 +68,7 @@ class Game:
         self.is_stopped = False
         self.browser = None
         self.lock = threading.Lock()
+        self.headless = headless
 
     @staticmethod
     def calc_distance(pos1, pos2):
@@ -182,7 +183,8 @@ class Game:
     def run_slither(self):
         chrome_options = Options()
         chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--headless')
+        if self.headless:
+            chrome_options.add_argument('--headless')
         self.browser = webdriver.Chrome(options=chrome_options)
         # noinspection HttpUrlsUsage
         self.browser.get("http://slither.io/")
@@ -190,14 +192,16 @@ class Game:
             nickname = WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.ID, "nick")))
             if nickname.is_displayed() and nickname.is_enabled():
                 # TODO forceserver("127.0.0.1", "8080") or any other server here
-                self.browser.execute_script(
-                    "document.querySelector('#nick').value='neat';window.connect();"
-                    "window.render_mode=1;window.want_quality=0;window.high_quality=false;"
-                    "window.onmousemove=function(){};window.redraw=function(){};window.stop();")
-                # self.browser.execute_script(
-                #     "document.querySelector('#nick').value='neat';window.connect();"
-                #     "window.render_mode=1;window.want_quality=0;window.high_quality=false;"
-                #     "window.onmousemove=function(){};window.stop();")
+                if self.headless:
+                    self.browser.execute_script(
+                        "document.querySelector('#nick').value='neat';window.connect();"
+                        "window.render_mode=1;window.want_quality=0;window.high_quality=false;"
+                        "window.onmousemove=function(){};window.redraw=function(){};window.stop();")
+                else:
+                    self.browser.execute_script(
+                        "document.querySelector('#nick').value='neat';window.connect();"
+                        "window.render_mode=1;window.want_quality=0;window.high_quality=false;"
+                        "window.onmousemove=function(){};window.stop();")
         finally:
             time.sleep(1)
 
